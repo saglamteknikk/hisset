@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>NatureSync Tree | Control Center</title>
+    <style>
+        /* Arka Plan: Derin ve Nefes Alan Orman */
+        body { 
+            margin: 0; padding: 0;
+            background: #020403;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            color: #d8f3dc;
+            position: relative;
+        }
+
+        .forest-layer {
+            position: absolute;
+            width: 200%; height: 200%;
+            z-index: -1;
+            background: radial-gradient(circle at center, 
+                rgba(27, 67, 50, 0.4) 0%, 
+                rgba(8, 28, 21, 0.7) 40%, 
+                rgba(0, 0, 0, 1) 80%);
+            animation: deepBreathe 10s ease-in-out infinite;
+        }
+
+        @keyframes deepBreathe {
+            0%, 100% { transform: scale(1); opacity: 0.5; filter: blur(20px); }
+            50% { transform: scale(1.2); opacity: 0.9; filter: blur(40px); }
+        }
+
+        /* Kontrol Kartı */
+        .card { 
+            background: rgba(10, 15, 12, 0.85); 
+            backdrop-filter: blur(20px);
+            padding: 60px 50px; 
+            border-radius: 40px; 
+            border: 1px solid rgba(116, 198, 157, 0.2);
+            box-shadow: 0 0 100px rgba(0, 0, 0, 1);
+            text-align: center;
+            width: 420px;
+            z-index: 10;
+        }
+
+        /* Başlıkta Hover Etkisi */
+        .title-group {
+            position: relative;
+            height: 40px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .title-group h1, .title-group h2 {
+            position: absolute;
+            width: 100%;
+            margin: 0;
+            transition: 0.5s ease-in-out;
+            font-size: 1.6em;
+            letter-spacing: 1px;
+        }
+
+        .title-tr { color: #b7e4c7; top: 0; }
+        .title-en { color: #74c69d; top: 100%; opacity: 0.6; }
+
+        .title-group:hover .title-tr { top: -100%; }
+        .title-group:hover .title-en { top: 0; }
+
+        .sub { font-size: 0.85em; opacity: 0.5; margin-bottom: 40px; transition: 0.3s; }
+        .sub:hover { opacity: 1; }
+
+        /* Buton ve Input Alanları */
+        .btn-box { position: relative; margin: 12px 0; }
+        
+        button { 
+            width: 100%; padding: 16px; border-radius: 14px; border: none; 
+            font-weight: bold; cursor: pointer; transition: 0.4s;
+            position: relative; overflow: hidden;
+            letter-spacing: 1px;
+        }
+
+        /* Buton Hover (Kayma Efekti) */
+        button .tr-text { display: block; transition: 0.4s; }
+        button .en-text { 
+            position: absolute; top: 100%; left: 0; width: 100%; 
+            height: 100%; display: flex; align-items: center; justify-content: center;
+            background: inherit; transition: 0.4s; font-size: 0.9em;
+        }
+        button:hover .tr-text { transform: translateY(-150%); }
+        button:hover .en-text { top: 0; }
+
+        .btn-conn { background: #081c15; color: #74c69d; border: 1px solid #1b4332; }
+        .btn-msg { background: #40916c; color: white; }
+        .btn-time { background: #2d6a4f; color: white; }
+
+        input { 
+            width: 100%; box-sizing: border-box; padding: 15px; 
+            border-radius: 15px; border: 1px solid #1b4332; 
+            background: rgba(0, 0, 0, 0.6); color: white;
+            text-align: center; font-size: 1em; outline: none; transition: 0.3s;
+            margin-bottom: 10px;
+        }
+
+        #status { margin-top: 30px; font-size: 0.8em; color: #52b788; font-weight: bold; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="forest-layer"></div>
+
+    <div class="card">
+        <div class="title-group">
+            <h1 class="title-tr">Senin Dünyan Senin Hayatın</h1>
+            <h2 class="title-en">Your World Your Life</h2>
+        </div>
+        
+        <p class="sub">Doğanın Kalbiyle Uyumlan | Sync with Nature</p>
+        
+        <div class="btn-box">
+            <button class="btn-conn" onclick="baglan()">
+                <span class="tr-text">SİSTEMİ UYANDIR</span>
+                <span class="en-text">AWAKE THE SYSTEM</span>
+            </button>
+        </div>
+
+        <div style="margin: 25px 0; height: 1px; background: rgba(116, 198, 157, 0.15);"></div>
+        
+        <input type="text" id="mInput" placeholder="Mesajını fısılda... | Whisper your message..." maxlength="25">
+
+        <div class="btn-box">
+            <button class="btn-msg" onclick="gonder('M')">
+                <span class="tr-text">MESAJI KAYDET</span>
+                <span class="en-text">SAVE MESSAGE</span>
+            </button>
+        </div>
+
+        <div class="btn-box">
+            <button class="btn-time" onclick="gonder('T')">
+                <span class="tr-text">SAATİ EŞİTLE</span>
+                <span class="en-text">SYNC TIME</span>
+            </button>
+        </div>
+        
+        <p id="status">Sistem Uyuyor... | System Sleeping...</p>
+    </div>
+
+    <script>
+        let port, writer;
+
+        async function baglan() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                const encoder = new TextEncoderStream();
+                encoder.readable.pipeTo(port.writable);
+                writer = encoder.writable.getWriter();
+                document.getElementById("status").innerText = "SİSTEM UYANDI! | SYSTEM AWAKE! 🍃";
+            } catch (e) {
+                alert("Connection failed! | Bağlantı kurulamadı!");
+            }
+        }
+
+        async function gonder(tip) {
+            if (!writer) return alert("Please connect first! | Lütfen önce bağlanın!");
+            let p = "";
+            if (tip === 'M') {
+                p = "M:" + document.getElementById("mInput").value + "\n";
+            } else {
+                const n = new Date();
+                const pad = (v) => String(v).padStart(2, '0');
+                p = "T" + pad(n.getDate()) + pad(n.getMonth()+1) + n.getFullYear() + 
+                    pad(n.getHours()) + pad(n.getMinutes()) + pad(n.getSeconds()) + "\n";
+            }
+            await writer.write(p);
+            alert("Sent! | Gönderildi!");
+        }
+    </script>
+</body>
+</html>

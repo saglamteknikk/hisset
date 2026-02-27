@@ -19,15 +19,8 @@
         @keyframes slideCycleEN { 0%, 45% { top: 15px; opacity: 1; } 50%, 100% { top: -50px; opacity: 0; } }
         @keyframes slideCycleDE { 0%, 45% { top: 70px; opacity: 0; } 50%, 95% { top: 15px; opacity: 1; } 100% { top: -50px; opacity: 0; } }
         
-        /* MESAJ ALANI VE EMOJI BUTONU */
-        .lcd-container { position: relative; width: 90%; margin: 20px auto; }
-        .lcd-screen { background: #081c15; color: #95d5b2; font-family: 'Courier New', monospace; font-size: 18px; border: 2px solid #409167; width: 100%; height: 50px; outline: none; padding: 10px; border-radius: 12px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); text-transform: uppercase; resize: none; overflow: hidden; }
-        #emojiBtn { position: absolute; right: 10px; bottom: 8px; cursor: pointer; font-size: 20px; z-index: 5; filter: grayscale(1); transition: 0.3s; }
-        #emojiBtn:hover { filter: grayscale(0); transform: scale(1.2); }
-        #emojiBox { display: none; position: absolute; bottom: 60px; right: 0; background: #081c15; border: 2px solid #409167; padding: 10px; border-radius: 12px; z-index: 100; box-shadow: 0 0 20px #000; width: 180px; }
-        #emojiBox span { cursor: pointer; padding: 8px; font-size: 20px; display: inline-block; transition: 0.2s; }
-        #emojiBox span:hover { transform: scale(1.3); }
-
+        .lcd-screen { background: #081c15; color: #95d5b2; font-family: 'Courier New', monospace; font-size: 18px; border: 2px solid #409167; width: 90%; height: 50px; outline: none; padding: 10px; border-radius: 12px; display: block; margin: 20px auto; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); text-transform: uppercase; resize: none; line-height: 30px; }
+        
         .btn { width: 100%; height: 60px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; transition: 0.4s; margin: 12px 0; color: white; position: relative; overflow: hidden; }
         .btn span { position: absolute; width: 100%; left: 0; transition: 0.5s; }
         .tr-txt { top: 20px; }
@@ -49,46 +42,30 @@
             <p class="slogan-de">Deine Welt, Dein Leben</p>
         </div>
         
-        <div class="lcd-container">
-            <textarea id="mInput" class="lcd-screen" placeholder="MESAJ YAZIN..." maxlength="60" oninput="fixText(this)"></textarea>
-            <div id="emojiBtn" onclick="toggleEmoji()">🍃</div>
-            <div id="emojiBox">
-                <span onclick="addEmoji('\x03')">❤</span> <span onclick="addEmoji('\x01')">☺</span> <span onclick="addEmoji('\x2A')">★</span> <span onclick="addEmoji('\xF8')">°</span> <span onclick="addEmoji('\x18')">↑</span> 
-                <span onclick="addEmoji('\x19')">↓</span>
-                <span onclick="addEmoji('\x1A')">→</span>
-            </div>
-        </div>
+        <textarea id="mInput" class="lcd-screen" placeholder="SADECE INGILIZCE HARFLER..." maxlength="60" oninput="filtrele(this)"></textarea>
         
-        <button class="btn btn-conn" onclick="baglan()"><span class="tr-txt">SİSTEMİ UYANDIR</span><span class="en-txt">WAKE SYSTEM</span><span class="de-txt">SYSTEM AUFWACHEN</span></button>
-        <button class="btn btn-msg" onclick="gonder()"><span class="tr-txt">SİSTEMİ GÜNCELLE</span><span class="en-txt">UPDATE SYSTEM</span><span class="de-txt">SYSTEM AKTUALISIEREN</span></button>
+        <button class="btn btn-conn" onclick="baglan()">
+            <span class="tr-txt">SİSTEMİ UYANDIR</span>
+            <span class="en-txt">WAKE SYSTEM</span>
+            <span class="de-txt">SYSTEM AUFWACHEN</span>
+        </button>
+
+        <button class="btn btn-msg" onclick="gonder()">
+            <span class="tr-txt">SİSTEMİ GÜNCELLE</span>
+            <span class="en-txt">UPDATE SYSTEM</span>
+            <span class="de-txt">SYSTEM AKTUALISIEREN</span>
+        </button>
+        
         <p id="status">Standby... | Beklemede... 🍃</p>
     </div>
 
     <script>
         let port, writer;
 
-        // KARAKTER DÜZELTME VE SÜZGEÇ
-        function fixText(el) {
-            const trMap = {'ç':'C','Ç':'C','ğ':'G','Ğ':'G','ı':'I','İ':'I','ö':'O','Ö':'O','ş':'S','Ş':'S','ü':'U','Ü':'U'};
-            let val = el.value;
-            let corrected = "";
-            for(let i=0; i<val.length; i++) {
-                corrected += trMap[val[i]] || val[i];
-            }
-            // Sadece A-Z, 0-9, boşluk ve bizim özel hex kodlu emojilere izin ver
-            el.value = corrected.toUpperCase().replace(/[^A-Z0-9\s\x03\x01\x2A\xF8\x18\x19\x1A]/g, '');
-        }
-
-        function toggleEmoji() {
-            const box = document.getElementById("emojiBox");
-            box.style.display = box.style.display === "none" ? "block" : "none";
-        }
-
-        function addEmoji(hexChar) {
-            const input = document.getElementById("mInput");
-            input.value += hexChar;
-            fixText(input);
-            document.getElementById("emojiBox").style.display = "none";
+        // ÇEVİRİ YOK: Sadece İngilizce A-Z, 0-9 ve boşluk tuşları çalışır.
+        // Ş, İ, Ğ, Ç, Ö, Ü veya emoji girilirse anında silinir, kutuya hiç yazılmaz.
+        function filtrele(el) {
+            el.value = el.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');
         }
 
         async function baglan() {
@@ -99,20 +76,32 @@
                 encoder.readable.pipeTo(port.writable);
                 writer = encoder.writable.getWriter();
                 document.getElementById("status").innerText = "SİSTEM UYANDI! | SYSTEM AWAKE! 🍃";
-            } catch (e) { alert("Bağlantı hatası!"); }
+            } catch (e) { alert("Bağlantı iptal edildi veya hata oluştu!"); }
         }
 
         async function gonder() {
-            if (!writer) return alert("Önce bağlanın!");
-            let msg = document.getElementById("mInput").value.replace(/\n/g, ' ');
+            if (!writer) return alert("Önce SİSTEMİ UYANDIR butonuna basın!");
+            
+            let msg = document.getElementById("mInput").value.replace(/\n/g, ' ').trim();
             if (msg === "") msg = "SENIN DUNYAN SENIN HAYATIN";
+
             const n = new Date();
             const p = (v) => String(v).padStart(2, '0');
-            const data = "M:" + msg + "|S:" + p(n.getHours()) + ":" + p(n.getMinutes()) + "|T:" + p(n.getDate()) + "." + p(n.getMonth() + 1) + "." + n.getFullYear() + "." + n.getDay() + "\n";
+            
+            const sa = p(n.getHours());
+            const dk = p(n.getMinutes());
+            const gun = p(n.getDate());
+            const ay = p(n.getMonth() + 1);
+            const yil = n.getFullYear();
+            const gunIdx = n.getDay();
+
+            // Senin mevcut Arduino kodunun tam istediği format
+            const data = "M:" + msg + "|S:" + sa + ":" + dk + "|T:" + gun + "." + ay + "." + yil + "." + gunIdx + "\n";
+
             try {
                 await writer.write(data);
-                document.getElementById("status").innerText = "BAŞARIYLA GÜNCELLENDİ! ✅";
-            } catch(e) { alert("Hata!"); }
+                document.getElementById("status").innerText = "SAAT VE MESAJ GÜNCELLENDİ! ✅";
+            } catch(e) { alert("Veri gönderilirken hata oluştu!"); }
         }
     </script>
 </body>
